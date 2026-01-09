@@ -1,0 +1,19 @@
+# General Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Pipenv / Environment variables
+.env
+.venv/
+
+# IDE settings (optional but recommended)
+.vscode/
+.idea/
