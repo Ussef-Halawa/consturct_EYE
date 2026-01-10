@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
@@ -107,13 +108,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+#Telling django to user our custom user model
+AUTH_USER_MODEL = 'backend.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC + 2'
+TIME_ZONE = 'Africa/Cairo'
 
 USE_I18N = True
 
