@@ -13,7 +13,13 @@ staticfiles/
 # Pipenv / Environment variables
 .env
 .venv/
+venv/
+.pipenv/
 
 # IDE settings (optional but recommended)
 .vscode/
 .idea/
+
+# OS files
+.DS_Store
+Thumbs.db
