@@ -5,32 +5,8 @@ from .models import Project
 from .models import Camera
 from .models import User
 from .models import SafetyViolation
+from .models import DailyProgressUpdate
 
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = [
-            'project_id',
-            'project_name',
-            'project_code',
-            'location_address',
-            'start_date',
-            'structural_design_storage_key',
-            'architectural_design_storage_key'
-        ]
-        
-        read_only_fields = [
-            'project_id',
-            'project_code'
-        ]
-    
-    updatable_fields = {
-        'project_name',
-        'location_address',
-        'start_date',
-        'structural_design_storage_key',
-        'architectural_design_storage_key'
-    }
 
 class CameraSerializer(serializers.ModelSerializer): 
     """
@@ -156,3 +132,48 @@ class SafetyViolationSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['violation_id', 'created_at']
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = [
+            'project_id',
+            'project_name',
+            'project_code',
+            'location_address',
+            'start_date',
+            'structural_design_storage_key',
+            'architectural_design_storage_key'
+        ]
+        
+        read_only_fields = [
+            'project_id',
+            'project_code'
+        ]
+    
+    updatable_fields = {
+        'project_name',
+        'location_address',
+        'start_date',
+        'structural_design_storage_key',
+        'architectural_design_storage_key'
+    }
+
+
+class DailyProgressUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyProgressUpdate
+
+        fields = [
+            'update_id',
+            'project',
+            'progress_percentage',
+            'details',
+            'created_at'
+            ]
+        
+        read_only_fields = [
+            'update_id',
+            'created_at'
+            ]
