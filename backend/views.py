@@ -1,15 +1,91 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-from .models import Camera, Project
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import CameraSerializer, CameraUpdateSerializer
 from .serializers import UserRegistrationSerializer, UserLoginSerializer
-from rest_framework.permissions import AllowAny
-from .models import SafetyViolation
 from .serializers import SafetyViolationSerializer
+from .serializers import ProjectSerializer
+from .models import Camera, Project
+from .models import SafetyViolation
 
+class ProjectList(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        querySet = Project.objects.all()
+        serializer = ProjectSerializer(querySet, many = True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ProjectSerializer(data = request.data)
+        serializer.is_valid(raise_exception = True)
+        serializer.save()
+        return Response(serializer.data, status = status.HTTP_201_CREATED)
+    
+    
+class ProjectDetails(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        project = get_object_or_404(Project, pk = project_id)
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
+    
+    def patch(self, request, project_id):
+        if not request.data:
+            return Response(
+                {"message": "Request body cannot be empty."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        allowed_fields = set(ProjectSerializer.updatable_fields)
+        incoming_data = dict(request.data)
+
+        valid_data = {}
+        for key, value in incoming_data.items():
+            if key in allowed_fields:
+                valid_data[key] = value
+        
+
+        invalid_fields = []
+        for key in incoming_data.keys():
+            if key not in allowed_fields:
+                invalid_fields.append(key)
+
+        if not valid_data:
+            return Response(
+                {
+                    "message": "No valid updatable fields were provided.",
+                    "allowed_fields": allowed_fields,
+                    "invalid_fields": invalid_fields
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        project = get_object_or_404(Project, pk = project_id)
+        serializer = ProjectSerializer(project, data = valid_data, partial = True)
+        serializer.is_valid(raise_exception = True)
+        serializer.save()
+
+        response_data = {
+            "message": "Project updated successfully.",
+            "project": serializer.data,
+        }
+        if invalid_fields:
+            response_data["skipped_fields"] = invalid_fields
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, project_id):
+        project = get_object_or_404(Project, pk = project_id)
+        serializer = ProjectSerializer(project)
+        project_data = serializer.data
+        project.delete()
+        return Response(project_data, status = status.HTTP_204_NO_CONTENT)
 
 class CameraCreateView(APIView):
     """

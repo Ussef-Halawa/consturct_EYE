@@ -1,14 +1,36 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Project
+from .models import Camera
+from .models import User
+from .models import SafetyViolation
+
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['project_id', 'project_name', 'project_code', 'location_address', 'start_date', 'structural_design_storage_key', 'architectural_design_storage_key']
-from .models import Camera
-from django.contrib.auth.password_validation import validate_password
-from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User
-from .models import SafetyViolation
+        fields = [
+            'project_id',
+            'project_name',
+            'project_code',
+            'location_address',
+            'start_date',
+            'structural_design_storage_key',
+            'architectural_design_storage_key'
+        ]
+        
+        read_only_fields = [
+            'project_id',
+            'project_code'
+        ]
+    
+    updatable_fields = {
+        'project_name',
+        'location_address',
+        'start_date',
+        'structural_design_storage_key',
+        'architectural_design_storage_key'
+    }
 
 class CameraSerializer(serializers.ModelSerializer): 
     """
@@ -64,6 +86,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'role']
+
+
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, validators=[validate_password])
 
     def create(self, validated_data):
         # Use create_user so Django hashes the password, Never save plain text passwords

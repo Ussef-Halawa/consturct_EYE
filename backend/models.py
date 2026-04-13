@@ -1,10 +1,24 @@
 import uuid
+import random
+import string
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+
+def generate_unique_project_code():
+    alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+    max_attempts = 25
+
+    for _ in range(max_attempts):
+        code = ''.join(random.choices(alphabet, k=6))
+        if not Project.objects.filter(project_code=code).exists():
+            return code
+
+    raise RuntimeError('Could not generate a unique project code after multiple attempts.')
+
 class Project(models.Model):
     project_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project_code = models.CharField(max_length=6, unique=True)
+    project_code = models.CharField(max_length=6, unique=True, default=generate_unique_project_code)
     project_name = models.CharField(max_length=255)
     location_address = models.TextField(blank=True, null=True)
     structural_design_storage_key = models.URLField(max_length=2048)
@@ -27,6 +41,7 @@ class User(AbstractUser):
     ]
 
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(null=False, blank=False, unique = True)
     role = models.CharField(max_length=50, choices=USER_ROLES)
 
     def __str__(self):
