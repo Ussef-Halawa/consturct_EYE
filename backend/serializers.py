@@ -152,13 +152,13 @@ class ProjectSerializer(serializers.ModelSerializer):
             'project_code'
         ]
     
-    updatable_fields = {
-        'project_name',
-        'location_address',
-        'start_date',
-        'structural_design_storage_key',
-        'architectural_design_storage_key'
-    }
+        updatable_fields = [
+            'project_name',
+            'location_address',
+            'start_date',
+            'structural_design_storage_key',
+            'architectural_design_storage_key'
+        ]
 
 
 class DailyProgressUpdateSerializer(serializers.ModelSerializer):

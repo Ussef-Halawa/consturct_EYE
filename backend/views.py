@@ -304,7 +304,7 @@ class ProjectDetails(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        allowed_fields = set(ProjectSerializer.updatable_fields)
+        allowed_fields = set(ProjectSerializer.Meta.updatable_fields)
         incoming_data = dict(request.data)
 
         valid_data = {}
@@ -355,14 +355,20 @@ class ProgressUpdate(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, project_id):
-        lastUpdate = DailyProgressUpdate.objects.filter(project = project_id).latest('created_at')
-        serializer = DailyProgressUpdateSerializer(lastUpdate)
-        return Response(serializer.data)
+        get_object_or_404(Project, pk = project_id)
+        try:
+            lastUpdate = DailyProgressUpdate.objects.filter(project = project_id).latest('created_at')
+            serializer = DailyProgressUpdateSerializer(lastUpdate)
+            return Response(serializer.data)
+        except DailyProgressUpdate.DoesNotExist:
+            return Response(
+                {"message": "No progress updates found for this project."},
+                status=status.HTTP_404_NOT_FOUND
+            )
     
     def post(self, request, project_id):
         incoming_data = dict(request.data)
         incoming_data['project'] = project_id
-        print(incoming_data)
         serializer = DailyProgressUpdateSerializer(data = incoming_data)
         serializer.is_valid(raise_exception = True)
         serializer.save()
