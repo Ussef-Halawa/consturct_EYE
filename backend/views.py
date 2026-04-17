@@ -9,6 +9,10 @@ from .serializers import UserRegistrationSerializer, UserLoginSerializer
 from rest_framework.permissions import AllowAny
 from .models import SafetyViolation
 from .serializers import SafetyViolationSerializer
+from .models import InjuryAlert
+from .serializers import InjuryAlertSerializer
+from .models import InactivityAlert
+from .serializers import InactivityAlertSerializer
 
 
 class CameraCreateView(APIView):
@@ -271,4 +275,157 @@ class SafetyViolationRetrieveView(APIView):
                 "violations": serializer.data
             },
             status=status.HTTP_200_OK
-        )    
+        )
+    
+
+
+
+class InjuryAlertCreateView(APIView):
+    """
+    POST /api/injury-alerts/
+    Creates a new injury alert record.
+    Called by the Raspberry Pi / AI model when it detects a potential injury on site.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = InjuryAlertSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Injury alert recorded successfully.",
+                    "alert": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {
+                "message": "Invalid data.",
+                "errors": serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class InjuryAlertRetrieveView(APIView):
+    """
+    GET /api/injury-alerts/?project_id=<uuid>
+    Retrieves all injury alerts for a specific project.
+    Supports optional filtering by alert_type.
+    Examples:
+    GET /api/injury-alerts/?project_id=<uuid>
+    GET /api/injury-alerts/?project_id=<uuid>&alert_type=Fall detected
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        project_id = request.query_params.get('project_id')
+
+        if not project_id:
+            return Response(
+                {"message": "project_id query parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verify project exists
+        get_object_or_404(Project, project_id=project_id)
+
+        alerts = InjuryAlert.objects.filter(
+            project__project_id=project_id
+        ).order_by('-created_at')  # newest first
+
+        # Optional filter by alert type
+        alert_type = request.query_params.get('alert_type')
+        if alert_type:
+            alerts = alerts.filter(alert_type=alert_type)
+
+        serializer = InjuryAlertSerializer(alerts, many=True)
+
+        return Response(
+            {
+                "project_id": project_id,
+                "count": alerts.count(),
+                "alerts": serializer.data
+            },
+            status=status.HTTP_200_OK
+        )
+    
+
+
+
+
+class InactivityAlertCreateView(APIView):
+    """
+    POST /api/inactivity-alerts/
+    Creates a new inactivity alert record.
+    Called by the Raspberry Pi / AI model when it detects no movement or work activity on site.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = InactivityAlertSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Inactivity alert recorded successfully.",
+                    "alert": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {
+                "message": "Invalid data.",
+                "errors": serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class InactivityAlertRetrieveView(APIView):
+    """
+    GET /api/inactivity-alerts/?project_id=<uuid>
+    Retrieves all inactivity alerts for a specific project.
+    Supports optional date filtering.
+    Examples:
+    GET /api/inactivity-alerts/?project_id=<uuid>
+    GET /api/inactivity-alerts/?project_id=<uuid>&date=2026-04-11
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        project_id = request.query_params.get('project_id')
+
+        if not project_id:
+            return Response(
+                {"message": "project_id query parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verify project exists
+        get_object_or_404(Project, project_id=project_id)
+
+        alerts = InactivityAlert.objects.filter(
+            project__project_id=project_id
+        ).order_by('-created_at')  # newest first
+
+        # Optional filter by date
+        date = request.query_params.get('date')
+        if date:
+            alerts = alerts.filter(created_at__date=date)
+
+        serializer = InactivityAlertSerializer(alerts, many=True)
+
+        return Response(
+            {
+                "project_id": project_id,
+                "count": alerts.count(),
+                "alerts": serializer.data
+            },
+            status=status.HTTP_200_OK
+        )

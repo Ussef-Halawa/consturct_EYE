@@ -92,27 +92,3 @@ class InactivityAlert(models.Model):
 
     def __str__(self):
         return f"Inactivity Alert - {self.project.project_name}"
-
-
-class DailyProgressUpdate(models.Model):
-    update_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    progress_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    details = models.JSONField(blank=True, null=True)
-    created_at = models.DateField()
-
-
-    def __str__(self):
-        return f"{self.project.project_name} - {self.progress_percentage}%"
-
-
-class Report(models.Model):
-    report_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    report_type = models.CharField(max_length=50)
-    storage_object_key = models.URLField(max_length=2048) 
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-    def __str__(self):
-        return f"{self.report_type} - {self.project.project_name}"
