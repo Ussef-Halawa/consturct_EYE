@@ -8,6 +8,10 @@ from .views import (
     UserLoginView,
     SafetyViolationCreateView,
     SafetyViolationRetrieveView,
+    InjuryAlertCreateView,
+    InjuryAlertRetrieveView,
+    InactivityAlertCreateView,
+    InactivityAlertRetrieveView,
 )
 
 urlpatterns = [
@@ -20,4 +24,9 @@ urlpatterns = [
     path('auth/login/', UserLoginView.as_view(), name='user-login'),
     path('safety-violations/', SafetyViolationCreateView.as_view(), name='safety-violation-create'),
     path('safety-violations/retrieve/', SafetyViolationRetrieveView.as_view(), name='safety-violation-retrieve'),
+    path('injury-alerts/', InjuryAlertCreateView.as_view(), name='injury-alert-create'),
+    path('injury-alerts/retrieve/', InjuryAlertRetrieveView.as_view(), name='injury-alert-retrieve'),
+    path('inactivity-alerts/', InactivityAlertCreateView.as_view(), name='inactivity-alert-create'),
+    path('inactivity-alerts/retrieve/', InactivityAlertRetrieveView.as_view(), name='inactivity-alert-retrieve'),
+
 ]
