@@ -63,10 +63,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'password', 'role']
 
-
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True, validators=[validate_password])
-
     def create(self, validated_data):
         # Use create_user so Django hashes the password, Never save plain text passwords
         user = User.objects.create_user(

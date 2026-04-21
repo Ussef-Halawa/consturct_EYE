@@ -19,7 +19,7 @@ def generate_unique_project_code():
 
 class Project(models.Model):
     project_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project_code = models.CharField(max_length=6, unique=True, default=generate_unique_project_code)
+    project_code = models.CharField(max_length=6, unique=True, default=generate_unique_project_code, editable = False)
     project_name = models.CharField(max_length=255)
     location_address = models.TextField(blank=True, null=True)
     structural_design_storage_key = models.URLField(max_length=2048)

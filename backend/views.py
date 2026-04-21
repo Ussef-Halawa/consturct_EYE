@@ -277,8 +277,8 @@ class ProjectList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        querySet = Project.objects.order_by('-start_date').all()
-        serializer = ProjectSerializer(querySet, many = True)
+        queryset = Project.objects.order_by('-start_date').all()
+        serializer = ProjectSerializer(queryset, many = True)
         return Response(serializer.data)
 
     def post(self, request):
@@ -357,8 +357,8 @@ class ProgressUpdate(APIView):
     def get(self, request, project_id):
         get_object_or_404(Project, pk = project_id)
         try:
-            lastUpdate = DailyProgressUpdate.objects.filter(project = project_id).latest('created_at')
-            serializer = DailyProgressUpdateSerializer(lastUpdate)
+            last_update = DailyProgressUpdate.objects.filter(project = project_id).latest('created_at')
+            serializer = DailyProgressUpdateSerializer(last_update)
             return Response(serializer.data)
         except DailyProgressUpdate.DoesNotExist:
             return Response(
