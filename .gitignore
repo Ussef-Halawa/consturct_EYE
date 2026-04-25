@@ -19,6 +19,7 @@ venv/
 # IDE settings (optional but recommended)
 .vscode/
 .idea/
+.agents/
 
 # OS files
 .DS_Store

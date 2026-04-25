@@ -273,7 +273,13 @@ class SafetyViolationRetrieveView(APIView):
 
 
 class ProjectList(APIView):
+    """
+    GET /api/projects/
+    Retrieves all projects, ordered by most recent start date
 
+    POST /api/projects/
+    Creates a new project record
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -289,7 +295,16 @@ class ProjectList(APIView):
 
 
 class ProjectDetails(APIView):
+    """
+    GET /api/projects/<project_id>/
+    Retrieves a single project by its ID
 
+    PATCH /api/projects/<project_id>/
+    Partially updates a project's updatable fields
+
+    DELETE /api/projects/<project_id>/
+    Permanently deletes a project and its related data
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, project_id):
@@ -304,7 +319,7 @@ class ProjectDetails(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        allowed_fields = set(ProjectSerializer.Meta.updatable_fields)
+        allowed_fields = set(ProjectSerializer.updatable_fields)
         incoming_data = dict(request.data)
 
         valid_data = {}
@@ -351,7 +366,13 @@ class ProjectDetails(APIView):
 
 
 class ProgressUpdate(APIView):
+    """
+    GET  /api/progress/<project_id>/
+    Retrieves the most recent daily progress update for a project
 
+    POST /api/progress/<project_id>/
+    Creates a new daily progress update for a project
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, project_id):

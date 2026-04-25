@@ -131,6 +131,15 @@ class SafetyViolationSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    """
+    Used for CREATE, GET, PATCH, and DELETE responses
+    Serializes all Project fields
+
+    'project_id' and 'project_code' are read-only as they are auto-generated    
+
+    'updatable_fields' is a class attribute - not part of Meta!
+    It's used by the PATCH view to know which fields can be updated
+    """
     class Meta:
         model = Project
         fields = [
@@ -148,16 +157,21 @@ class ProjectSerializer(serializers.ModelSerializer):
             'project_code'
         ]
     
-        updatable_fields = [
-            'project_name',
-            'location_address',
-            'start_date',
-            'structural_design_storage_key',
-            'architectural_design_storage_key'
-        ]
+    updatable_fields = [
+        'project_name',
+        'location_address',
+        'start_date',
+        'structural_design_storage_key',
+        'architectural_design_storage_key'
+    ]
 
 
 class DailyProgressUpdateSerializer(serializers.ModelSerializer):
+    """
+    Used for CREATE and GET responses
+    Serializes all DailyProgressUpdate fields
+    'update_id' and 'created_at' are read-only as they are auto-generated
+    """
     class Meta:
         model = DailyProgressUpdate
 
