@@ -12,6 +12,9 @@ from .views import (
     InjuryAlertRetrieveView,
     InactivityAlertCreateView,
     InactivityAlertRetrieveView,
+    ProjectList,
+    ProjectDetails,
+    ProgressUpdate,
 )
 
 urlpatterns = [
@@ -28,5 +31,7 @@ urlpatterns = [
     path('injury-alerts/retrieve/', InjuryAlertRetrieveView.as_view(), name='injury-alert-retrieve'),
     path('inactivity-alerts/', InactivityAlertCreateView.as_view(), name='inactivity-alert-create'),
     path('inactivity-alerts/retrieve/', InactivityAlertRetrieveView.as_view(), name='inactivity-alert-retrieve'),
-
+    path('projects/', ProjectList.as_view()),
+    path('projects/<uuid:project_id>/', ProjectDetails.as_view()),
+    path('progress/<uuid:project_id>/', ProgressUpdate.as_view())
 ]

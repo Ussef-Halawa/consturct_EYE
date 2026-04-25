@@ -1,19 +1,18 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-from .models import Camera, Project
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import CameraSerializer, CameraUpdateSerializer
 from .serializers import UserRegistrationSerializer, UserLoginSerializer
-from rest_framework.permissions import AllowAny
-from .models import SafetyViolation
 from .serializers import SafetyViolationSerializer
 from .models import InjuryAlert
 from .serializers import InjuryAlertSerializer
 from .models import InactivityAlert
 from .serializers import InactivityAlertSerializer
-
+from .serializers import ProjectSerializer, DailyProgressUpdateSerializer
+from .models import Camera, Project, DailyProgressUpdate
+from .models import SafetyViolation
 
 class CameraCreateView(APIView):
     """
@@ -204,7 +203,6 @@ class UserLoginView(APIView):
             },
             status=status.HTTP_400_BAD_REQUEST
         )
-    
 
 
 class SafetyViolationCreateView(APIView):
@@ -429,3 +427,127 @@ class InactivityAlertRetrieveView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+
+class ProjectList(APIView):
+    """
+    GET /api/projects/
+    Retrieves all projects, ordered by most recent start date
+
+    POST /api/projects/
+    Creates a new project record
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        queryset = Project.objects.order_by('-start_date').all()
+        serializer = ProjectSerializer(queryset, many = True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ProjectSerializer(data = request.data)
+        serializer.is_valid(raise_exception = True)
+        serializer.save()
+        return Response(serializer.data, status = status.HTTP_201_CREATED)
+
+
+class ProjectDetails(APIView):
+    """
+    GET /api/projects/<project_id>/
+    Retrieves a single project by its ID
+
+    PATCH /api/projects/<project_id>/
+    Partially updates a project's updatable fields
+
+    DELETE /api/projects/<project_id>/
+    Permanently deletes a project and its related data
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        project = get_object_or_404(Project, pk = project_id)
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
+    
+    def patch(self, request, project_id):
+        if not request.data:
+            return Response(
+                {"message": "Request body cannot be empty."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        allowed_fields = set(ProjectSerializer.updatable_fields)
+        incoming_data = dict(request.data)
+
+        valid_data = {}
+        for key, value in incoming_data.items():
+            if key in allowed_fields:
+                valid_data[key] = value
+        
+
+        invalid_fields = []
+        for key in incoming_data.keys():
+            if key not in allowed_fields:
+                invalid_fields.append(key)
+
+        if not valid_data:
+            return Response(
+                {
+                    "message": "No valid updatable fields were provided.",
+                    "allowed_fields": allowed_fields,
+                    "invalid_fields": invalid_fields
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        project = get_object_or_404(Project, pk = project_id)
+        serializer = ProjectSerializer(project, data = valid_data, partial = True)
+        serializer.is_valid(raise_exception = True)
+        serializer.save()
+
+        response_data = {
+            "message": "Project updated successfully.",
+            "project": serializer.data,
+        }
+        if invalid_fields:
+            response_data["skipped_fields"] = invalid_fields
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, project_id):
+        project = get_object_or_404(Project, pk = project_id)
+        serializer = ProjectSerializer(project)
+        project_data = serializer.data
+        project.delete()
+        return Response(project_data, status = status.HTTP_204_NO_CONTENT)
+
+
+class ProgressUpdate(APIView):
+    """
+    GET  /api/progress/<project_id>/
+    Retrieves the most recent daily progress update for a project
+
+    POST /api/progress/<project_id>/
+    Creates a new daily progress update for a project
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        get_object_or_404(Project, pk = project_id)
+        try:
+            last_update = DailyProgressUpdate.objects.filter(project = project_id).latest('created_at')
+            serializer = DailyProgressUpdateSerializer(last_update)
+            return Response(serializer.data)
+        except DailyProgressUpdate.DoesNotExist:
+            return Response(
+                {"message": "No progress updates found for this project."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def post(self, request, project_id):
+        incoming_data = dict(request.data)
+        incoming_data['project'] = project_id
+        serializer = DailyProgressUpdateSerializer(data = incoming_data)
+        serializer.is_valid(raise_exception = True)
+        serializer.save()
+        return Response(serializer.data, status = status.HTTP_201_CREATED)

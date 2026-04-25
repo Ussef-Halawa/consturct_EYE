@@ -1,11 +1,14 @@
-from rest_framework import serializers
-from .models import Camera
 from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+from .models import Project
+from .models import Camera
 from .models import User
 from .models import SafetyViolation
 from .models import InjuryAlert
 from .models import InactivityAlert
+from .models import DailyProgressUpdate
+
 
 class CameraSerializer(serializers.ModelSerializer): 
     """
@@ -163,3 +166,62 @@ class InactivityAlertSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['alert_id', 'created_at']
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    """
+    Used for CREATE, GET, PATCH, and DELETE responses
+    Serializes all Project fields
+
+    'project_id' and 'project_code' are read-only as they are auto-generated    
+
+    'updatable_fields' is a class attribute - not part of Meta!
+    It's used by the PATCH view to know which fields can be updated
+    """
+    class Meta:
+        model = Project
+        fields = [
+            'project_id',
+            'project_name',
+            'project_code',
+            'location_address',
+            'start_date',
+            'structural_design_storage_key',
+            'architectural_design_storage_key'
+        ]
+        
+        read_only_fields = [
+            'project_id',
+            'project_code'
+        ]
+    
+    updatable_fields = [
+        'project_name',
+        'location_address',
+        'start_date',
+        'structural_design_storage_key',
+        'architectural_design_storage_key'
+    ]
+
+
+class DailyProgressUpdateSerializer(serializers.ModelSerializer):
+    """
+    Used for CREATE and GET responses
+    Serializes all DailyProgressUpdate fields
+    'update_id' and 'created_at' are read-only as they are auto-generated
+    """
+    class Meta:
+        model = DailyProgressUpdate
+
+        fields = [
+            'update_id',
+            'project',
+            'progress_percentage',
+            'details',
+            'created_at'
+            ]
+        
+        read_only_fields = [
+            'update_id',
+            'created_at'
+            ]

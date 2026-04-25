@@ -1,10 +1,25 @@
 import uuid
+import random
+import string
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
+
+
+def generate_unique_project_code():
+    alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+    max_attempts = 25
+
+    for _ in range(max_attempts):
+        code = ''.join(random.choices(alphabet, k=6))
+        if not Project.objects.filter(project_code=code).exists():
+            return code
+
+    raise RuntimeError('Could not generate a unique project code after multiple attempts.')
 
 class Project(models.Model):
     project_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project_code = models.CharField(max_length=6, unique=True)
+    project_code = models.CharField(max_length=6, unique=True, default=generate_unique_project_code, editable = False)
     project_name = models.CharField(max_length=255)
     location_address = models.TextField(blank=True, null=True)
     structural_design_storage_key = models.URLField(max_length=2048)
@@ -27,6 +42,7 @@ class User(AbstractUser):
     ]
 
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(null=False, blank=False, unique = True)
     role = models.CharField(max_length=50, choices=USER_ROLES)
 
     def __str__(self):
@@ -92,3 +108,31 @@ class InactivityAlert(models.Model):
 
     def __str__(self):
         return f"Inactivity Alert - {self.project.project_name}"
+
+
+class DailyProgressUpdate(models.Model):
+    update_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    progress_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    details = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add = True)
+
+
+    def __str__(self):
+        return f"{self.project.project_name} - {self.progress_percentage}%"
+
+
+class Report(models.Model):
+    report_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    report_type = models.CharField(max_length=50)
+    storage_object_key = models.URLField(max_length=2048) 
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"{self.report_type} - {self.project.project_name}"
