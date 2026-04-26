@@ -2,10 +2,10 @@
 URL configuration for constructEYE project.
 ...
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-import debug_toolbar
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,7 +15,8 @@ urlpatterns = [
 
     # App endpoints
     path('api/', include('backend.urls')),
-
-    # Debug toolbar
-    path('__debug__/', include(debug_toolbar.urls)),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [path('__debug__/', include(debug_toolbar.urls))]
