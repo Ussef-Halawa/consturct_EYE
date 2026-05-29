@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'backend',
     'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -138,6 +139,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # JWT config
@@ -150,3 +152,39 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'user_id',
     'USER_ID_CLAIM': 'user_id',       
 }
+
+
+DEVICE_API_KEY = env('DEVICE_API_KEY', default=None)
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'ConstructEYE API',
+    'DESCRIPTION': '''
+        ConstructEYE is an AI-powered construction site monitoring system.
+        
+        ## Authentication
+        This API uses JWT Bearer token authentication.
+        To authenticate, first call /api/auth/login/ to get your access token,
+        then include it in the Authorization header as: Bearer <token>
+        
+        ## Roles
+        - **Admin**: Full access to all endpoints
+        - **Engineer**: Can join projects, view data and receive alerts
+        - **Owner**: Can join projects and view reports only
+        - **Device (Raspberry Pi)**: Uses API key for creating alerts
+    ''',
+    'VERSION': '2.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'TAGS': [
+        {'name': 'Authentication', 'description': 'User registration and login'},
+        {'name': 'Projects', 'description': 'Project management'},
+        {'name': 'Cameras', 'description': 'Camera management'},
+        {'name': 'Safety Violations', 'description': 'Safety violation alerts'},
+        {'name': 'Injury Alerts', 'description': 'Injury detection alerts'},
+        {'name': 'Inactivity Alerts', 'description': 'Worker inactivity alerts'},
+        {'name': 'Progress Updates', 'description': 'Daily construction progress'},
+        {'name': 'Project Members', 'description': 'Project membership management'},
+    ],
+}
+FIREBASE_STORAGE_BUCKET = env('FIREBASE_STORAGE_BUCKET', default=None)

@@ -12,6 +12,12 @@ from .views import (
     InjuryAlertRetrieveView,
     InactivityAlertCreateView,
     InactivityAlertRetrieveView,
+    DailyProgressUpdateCreateView,
+    DailyProgressUpdateRetrieveView,
+    ProjectJoinView,
+    ProjectMembersListView,
+    ProjectMemberDeleteView,
+    FCMTokenUpdateView,
 )
 
 urlpatterns = [
@@ -28,5 +34,12 @@ urlpatterns = [
     path('injury-alerts/retrieve/', InjuryAlertRetrieveView.as_view(), name='injury-alert-retrieve'),
     path('inactivity-alerts/', InactivityAlertCreateView.as_view(), name='inactivity-alert-create'),
     path('inactivity-alerts/retrieve/', InactivityAlertRetrieveView.as_view(), name='inactivity-alert-retrieve'),
+    path('progress-updates/', DailyProgressUpdateCreateView.as_view(), name='progress-update-create'),
+    path('progress-updates/latest/', DailyProgressUpdateRetrieveView.as_view(), name='progress-update-retrieve'),
+    path('projects/join/', ProjectJoinView.as_view(), name='project-join'),
+    path('projects/<uuid:project_id>/members/', ProjectMembersListView.as_view(), name='project-members-list'),
+    path('projects/<uuid:project_id>/members/<uuid:user_id>/', ProjectMemberDeleteView.as_view(), name='project-member-delete'),
+    path('users/fcm-token/', FCMTokenUpdateView.as_view(), name='fcm-token-update'),
+
 
 ]
