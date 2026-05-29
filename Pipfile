@@ -10,6 +10,8 @@ django-debug-toolbar = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 django-environ = "*"
+drf-spectacular = "*"
+firebase-admin = "*"
 
 [dev-packages]
 

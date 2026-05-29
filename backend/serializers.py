@@ -163,3 +163,95 @@ class InactivityAlertSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['alert_id', 'created_at']
+
+
+
+from .models import ProjectMember, Project
+
+
+class ProjectMemberSerializer(serializers.ModelSerializer):
+    """
+    Used for displaying project members.
+    Shows full user details instead of just the UUID.
+    """
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+    role = serializers.CharField(source='user.role', read_only=True)
+    user_id = serializers.UUIDField(source='user.user_id', read_only=True)
+
+    class Meta:
+        model = ProjectMember
+        fields = ['user_id', 'username', 'email', 'role']
+
+
+
+from .models import DailyProgressUpdate
+
+
+class DailyProgressUpdateSerializer(serializers.ModelSerializer):
+    """
+    Used for CREATE and GET responses.
+    - 'update_id' is read-only — auto-generated
+    - 'progress_percentage' must be between 0.00 and 100.00
+    - 'details' is a JSONField — can store any extra data the AI sends
+    for example: {"completed_floors": 3, "pending_tasks": ["roofing"]}
+    - 'created_at' is the date of this progress snapshot
+    """
+    class Meta:
+        model = DailyProgressUpdate
+        fields = [
+            'update_id',
+            'project',
+            'progress_percentage',
+            'details',
+            'created_at',
+        ]
+        read_only_fields = ['update_id']
+
+    def validate_progress_percentage(self, value):
+        """
+        Make sure progress is between 0 and 100.
+        Anything outside this range makes no sense.
+        """
+        if value < 0 or value > 100:
+            raise serializers.ValidationError(
+                "Progress percentage must be between 0 and 100."
+            )
+        return value
+
+
+
+
+class ProjectJoinSerializer(serializers.Serializer):
+    """
+    Used for joining a project using a 6-character project code.
+    The user sends only the project_code — backend finds the project
+    and creates the ProjectMember record automatically.
+    """
+    project_code = serializers.CharField(max_length=6)
+
+    def validate_project_code(self, value):
+        """
+        Check the project code actually exists in the database.
+        If not, return a clear error message.
+        """
+        try:
+            project = Project.objects.get(project_code=value.upper())
+        except Project.DoesNotExist:
+            raise serializers.ValidationError(
+                "Invalid project code. No project found with this code."
+            )
+        return value.upper()
+
+    def get_project(self, code):
+        return Project.objects.get(project_code=code)
+    
+
+
+class FCMTokenSerializer(serializers.Serializer):
+    """
+    Used to store the user's FCM token for push notifications.
+    The Flutter app sends this token after login so Django
+    knows which device to send notifications to.
+    """
+    fcm_token = serializers.CharField(max_length=500)
